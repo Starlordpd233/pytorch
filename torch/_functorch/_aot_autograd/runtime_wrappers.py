@@ -2258,6 +2258,8 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
 
             @staticmethod
             def _backward_impl(ctx, all_args):
+                from torch._inductor.async_compile import async_compile_pool_manager
+
                 # compiled autograd reimplements this function at proxy_call_aot_backward
                 assert (
                     not backward_state_indices
@@ -2298,7 +2300,7 @@ To fix this, your tensor subclass must implement the dunder method __force_to_sa
                     metrics_context = get_metrics_context()
                     with tracing(saved_context), compile_context(
                         saved_compile_context
-                    ), context(), track_graph_compiling(
+                    ), async_compile_pool_manager(), context(), track_graph_compiling(
                         aot_config, "backward"
                     ), metrics_context, dynamo_timed(
                         "backward._backward_impl",
